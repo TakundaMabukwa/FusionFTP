@@ -1,0 +1,26 @@
+{
+  "name": "solflo-ftp-fusion",
+  "version": "1.0.0",
+  "description": "SFTP invoice export service for Fusion accounting system",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test src/**/*.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^8.0.0",
+    "node-cron": "^3.0.3",
+    "ssh2-sftp-client": "^11.0.0",
+    "winston": "^3.14.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
