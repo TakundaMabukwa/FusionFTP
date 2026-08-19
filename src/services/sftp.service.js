@@ -19,6 +19,7 @@ async function uploadToSFTP(fileBuffer, filename) {
       password: config.sftp.password,
       readyTimeout: 30000,
       connTimeout: 30000,
+      debug: (msg) => logger.info('SFTP debug', { msg }),
       algorithms: {
         kex: [
           'ecdh-sha2-nistp256',
@@ -27,6 +28,7 @@ async function uploadToSFTP(fileBuffer, filename) {
           'diffie-hellman-group-exchange-sha256',
           'diffie-hellman-group14-sha256',
           'diffie-hellman-group14-sha1',
+          'diffie-hellman-group1-sha1',
         ],
         serverHostKey: [
           'ssh-rsa',
