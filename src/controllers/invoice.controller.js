@@ -3,7 +3,8 @@ const logger = require('../utils/logger');
 
 async function exportNextInvoices(req, res, next) {
   try {
-    const result = await invoiceService.exportNextInvoices();
+    const { invoiceNumber } = req.body;
+    const result = await invoiceService.exportNextInvoices(invoiceNumber);
 
     res.status(200).json({
       data: result,

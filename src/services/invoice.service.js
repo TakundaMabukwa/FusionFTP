@@ -4,8 +4,49 @@ const sftpService = require('./sftp.service');
 const { formatFilenameDate } = require('../utils/date');
 const logger = require('../utils/logger');
 
-async function exportNextInvoices() {
+async function exportNextInvoices(invoiceNumber) {
   const startTime = Date.now();
+
+  if (invoiceNumber) {
+    logger.info('Starting single-invoice export', { invoiceNumber });
+
+    const invoices = await supabaseService.fetchSingleInvoice(invoiceNumber);
+
+    if (invoices.length === 0) {
+      logger.info('Invoice not found', { invoiceNumber });
+      return {
+        success: true,
+        invoiceCount: 0,
+        filename: null,
+        message: `Invoice ${invoiceNumber} not found`,
+      };
+    }
+
+    const excelBuffer = await excelService.generateExcel(invoices);
+
+    const now = new Date();
+    const filename = `invoice_${invoiceNumber}_${formatFilenameDate(now)}.xlsx`;
+
+    const uploadResult = await sftpService.uploadToSFTP(excelBuffer, filename);
+
+    const duration = Date.now() - startTime;
+
+    logger.info('Single-invoice export completed', {
+      invoiceNumber,
+      filename,
+      duration,
+    });
+
+    return {
+      success: true,
+      invoiceCount: 1,
+      invoiceNumber,
+      filename,
+      remotePath: uploadResult.remotePath,
+      sizeBytes: uploadResult.sizeBytes,
+      duration,
+    };
+  }
 
   const lastInvoiceNumber = await supabaseService.getLastExportedInvoiceNumber();
   const startFrom = lastInvoiceNumber + 1;
