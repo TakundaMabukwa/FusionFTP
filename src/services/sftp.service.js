@@ -5,6 +5,7 @@ const logger = require('../utils/logger');
 async function uploadToSFTP(fileBuffer, filename) {
   const client = new ftp.Client();
   client.ftp.verbose = false;
+  client.ftp.tlsOptions = { rejectUnauthorized: false };
   const remotePath = `${config.sftp.uploadPath}/${filename}`;
 
   try {
@@ -47,8 +48,12 @@ async function uploadToSFTP(fileBuffer, filename) {
       sizeBytes: fileBuffer.length,
     };
   } catch (error) {
-    logger.error('FTP upload failed', { error: error.message });
-    throw new Error(`FTP upload failed: ${error.message}`);
+    logger.error('FTP upload failed', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
+    throw new Error(`FTP upload failed: ${error.message || error.code || JSON.stringify(error)}`);
   } finally {
     client.close();
     logger.info('FTP connection closed');
