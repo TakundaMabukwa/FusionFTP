@@ -1,39 +1,42 @@
-const SftpClient = require('ssh2-sftp-client');
+const ftp = require('basic-ftp');
 const config = require('../config/env');
 const logger = require('../utils/logger');
 
 async function uploadToSFTP(fileBuffer, filename) {
-  const sftp = new SftpClient();
+  const client = new ftp.Client();
+  client.ftp.verbose = false;
   const remotePath = `${config.sftp.uploadPath}/${filename}`;
 
   try {
-    logger.info('Connecting to SFTP server', {
+    logger.info('Connecting to FTP server', {
       host: config.sftp.host,
       port: config.sftp.port,
     });
 
-    await sftp.connect({
+    await client.access({
       host: config.sftp.host,
       port: config.sftp.port,
-      username: config.sftp.username,
+      user: config.sftp.username,
       password: config.sftp.password,
-      readyTimeout: 10000,
-      connTimeout: 10000,
+      secure: false,
     });
 
-    logger.info('SFTP connected successfully');
+    logger.info('FTP connected successfully');
 
-    const exists = await sftp.exists(config.sftp.uploadPath);
-    if (!exists) {
+    try {
+      await client.cd(config.sftp.uploadPath);
+    } catch {
       logger.info('Creating upload directory', {
         path: config.sftp.uploadPath,
       });
-      await sftp.mkdir(config.sftp.uploadPath, true);
+      await client.ensureDir(config.sftp.uploadPath);
     }
 
     logger.info('Uploading file', { remotePath, sizeBytes: fileBuffer.length });
 
-    await sftp.put(fileBuffer, remotePath);
+    const { Readable } = require('stream');
+    const readable = Readable.from(fileBuffer);
+    await client.uploadFrom(readable, filename);
 
     logger.info('File uploaded successfully', { remotePath });
 
@@ -43,13 +46,11 @@ async function uploadToSFTP(fileBuffer, filename) {
       sizeBytes: fileBuffer.length,
     };
   } catch (error) {
-    logger.error('SFTP upload failed', { error: error.message });
-    throw new Error(`SFTP upload failed: ${error.message}`);
+    logger.error('FTP upload failed', { error: error.message });
+    throw new Error(`FTP upload failed: ${error.message}`);
   } finally {
-    if (sftp.connected) {
-      await sftp.end();
-      logger.info('SFTP connection closed');
-    }
+    client.close();
+    logger.info('FTP connection closed');
   }
 }
 
