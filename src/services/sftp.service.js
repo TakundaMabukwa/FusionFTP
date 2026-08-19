@@ -19,6 +19,7 @@ async function uploadToSFTP(fileBuffer, filename) {
       user: config.sftp.username,
       password: config.sftp.password,
       secure: true,
+      tls: { rejectUnauthorized: false },
     });
 
     logger.info('FTP connected successfully');
