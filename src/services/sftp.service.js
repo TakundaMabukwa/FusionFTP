@@ -3,6 +3,8 @@ const config = require('../config/env');
 const logger = require('../utils/logger');
 
 async function uploadToSFTP(fileBuffer, filename) {
+  const prevReject = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   const client = new ftp.Client();
   client.ftp.verbose = false;
   client.ftp.tlsOptions = { rejectUnauthorized: false };
@@ -55,6 +57,7 @@ async function uploadToSFTP(fileBuffer, filename) {
     });
     throw new Error(`FTP upload failed: ${error.message || error.code || JSON.stringify(error)}`);
   } finally {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = prevReject;
     client.close();
     logger.info('FTP connection closed');
   }
