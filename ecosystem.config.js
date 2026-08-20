@@ -11,6 +11,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3004,
+        CRON_SCHEDULE: '0 * * * *',
       },
     },
   ],
