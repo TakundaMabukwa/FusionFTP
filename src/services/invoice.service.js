@@ -1,5 +1,5 @@
 const supabaseService = require('./supabase.service');
-const excelService = require('./excel.service');
+const csvService = require('./csv.service');
 const sftpService = require('./sftp.service');
 const { formatFilenameDate } = require('../utils/date');
 const logger = require('../utils/logger');
@@ -22,12 +22,12 @@ async function exportNextInvoices(invoiceNumber) {
       };
     }
 
-    const excelBuffer = await excelService.generateExcel(invoices);
+    const csvBuffer = csvService.generateCsv(invoices);
 
     const now = new Date();
-    const filename = `invoice_${invoiceNumber}_${formatFilenameDate(now)}.xlsx`;
+    const filename = `invoice_${invoiceNumber}_${formatFilenameDate(now)}.csv`;
 
-    const uploadResult = await sftpService.uploadToSFTP(excelBuffer, filename);
+    const uploadResult = await sftpService.uploadToSFTP(csvBuffer, filename);
 
     const duration = Date.now() - startTime;
 
@@ -72,12 +72,12 @@ async function exportNextInvoices(invoiceNumber) {
   const invoiceNumbers = invoices.map((inv) => parseInt(inv.InvoiceNumber, 10));
   const maxInvoiceNumber = Math.max(...invoiceNumbers);
 
-  const excelBuffer = await excelService.generateExcel(invoices);
+  const csvBuffer = csvService.generateCsv(invoices);
 
   const now = new Date();
-  const filename = `invoice_${formatFilenameDate(now)}_batch.xlsx`;
+  const filename = `invoice_${formatFilenameDate(now)}_batch.csv`;
 
-  const uploadResult = await sftpService.uploadToSFTP(excelBuffer, filename);
+  const uploadResult = await sftpService.uploadToSFTP(csvBuffer, filename);
 
   await supabaseService.logExport(maxInvoiceNumber, invoices.length, filename);
 
